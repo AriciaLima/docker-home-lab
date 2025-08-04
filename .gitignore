@@ -1,0 +1,16 @@
+# Node.js
+node_modules/
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# Backup/swap temporários
+*.swp
+*.bak
+*.tmp

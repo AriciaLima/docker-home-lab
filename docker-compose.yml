@@ -1,0 +1,191 @@
+services:
+  # 🛣️ Web-based Docker management interface
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - "9443:9443"  # HTTPS
+      - "9000:9000"  # HTTP (optional)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+
+  # 📼 Network-wide ad blocker and DNS
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    network_mode: host
+    environment:
+      - TZ=Europe/Lisbon
+      - FTLCONF_dns_listeningMode=all
+    volumes:
+      - ./etc-pihole:/etc/pihole
+      - ./etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+      - SYS_TIME
+      - SYS_NICE
+    restart: unless-stopped
+
+  # 🎥 Media server
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - TZ=Europe/Lisbon
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /home/aricia/docker/plex/config:/config
+      - /media/aricia/HD/Plexamp:/data/music
+      - /media/aricia/HD/Movies:/data/movies
+      - /media/aricia/HD/Seriados:/data/series
+      - /media/aricia/HD/Anime:/data/anime
+      - /media/aricia/HD/Desenhos:/data/cartoons
+    restart: unless-stopped
+
+  # 📖 Comic and manga server
+  komga:
+    image: gotson/komga
+    container_name: komga
+    user: "1000:1000"
+    ports:
+      - 25600:25600
+    environment:
+      - TZ=Europe/Lisbon
+    volumes:
+      - /home/aricia/docker/komga/config:/config
+      - "/media/aricia/HD/Komga Server/Mangá:/data/manga"
+      - "/media/aricia/HD/Komga Server/HQ:/data/hq"
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+
+  # 👁️ Torrent client with web UI
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Lisbon
+      - WEBUI_PORT=8080
+    volumes:
+      - /home/aricia/docker/qbittorrent/config:/config
+      - /media/aricia/HD/Downloads:/downloads
+    restart: unless-stopped
+
+  # 🌐 Indexer proxy for torrents and usenet
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    ports:
+      - 9117:9117
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - /home/aricia/docker/jackett/config:/config
+      - /media/aricia/HD/Downloads:/downloads
+    restart: unless-stopped
+
+  # 🎮 Series management and automation
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - /home/aricia/docker/sonarr/config:/config
+      - /media/aricia/HD/Seriados:/tv
+      - /media/aricia/HD/Desenhos:/cartoons
+      - /media/aricia/HD/Anime:/anime
+      - /media/aricia/HD/Downloads:/downloads
+    restart: unless-stopped
+
+  # 🎞️ Movie management and automation
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - /home/aricia/docker/radarr/config:/config
+      - /media/aricia/HD/Movies:/movies
+      - /media/aricia/HD/Downloads:/downloads
+    restart: unless-stopped
+
+  # 🎵 Music management and automation
+  lidarr:
+    image: linuxserver/lidarr
+    container_name: lidarr
+    ports:
+      - 8686:8686
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - /home/aricia/docker/lidarr/config:/config
+      - /home/aricia/HD/Plexamp:/music
+      - /media/aricia/HD/Downloads:/downloads
+    restart: unless-stopped
+
+  # 📩 Media request management
+  overseerr:
+    image: sctx/overseerr
+    container_name: overseerr
+    ports:
+      - 5055:5055
+    environment:
+      - TZ=Europe/Lisbon
+      - LOG_LEVEL=info
+    volumes:
+      - /home/aricia/docker/overseerr/config:/app/config
+    restart: unless-stopped
+
+  # 🧐 Indexer manager for Sonarr/Radarr
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    ports:
+      - 9696:9696
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - /home/aricia/docker/prowlarr/config:/config
+    restart: unless-stopped
+
+  # 🔓 Cloudflare bypass resolver for automation
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+
+volumes:
+  portainer_data:
