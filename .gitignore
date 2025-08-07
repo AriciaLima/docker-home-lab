@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Node.js
 node_modules/
 *.log
@@ -14,3 +15,8 @@ Thumbs.db
 *.swp
 *.bak
 *.tmp
+=======
+# Ignore runtime data and local configs
+etc-pihole/
+etc-dnsmasq.d/
+>>>>>>> c43528e (add Makefile + scripts)

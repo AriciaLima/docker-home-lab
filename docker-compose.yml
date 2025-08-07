@@ -20,13 +20,18 @@ services:
   pihole:
     image: pihole/pihole:latest
     container_name: pihole
-    network_mode: host
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80"
+      - "443:443"
     environment:
       - TZ=Europe/Lisbon
       - FTLCONF_dns_listeningMode=all
+      - WEBPASSWORD=  # Optional: set your password here, or leave blank for no password
+      - PIHOLE_DNS_= # Optional: upstream DNS (Cloudflare)
     volumes:
-      - ./etc-pihole:/etc/pihole
-      - ./etc-dnsmasq.d:/etc/dnsmasq.d
+      - pihole_etc:/etc/pihole  # Changed from bind mount to named volume
     cap_add:
       - NET_ADMIN
       - SYS_TIME
@@ -189,3 +194,5 @@ services:
 
 volumes:
   portainer_data:
+  pihole_etc:
+  dnsmasq_etc:
